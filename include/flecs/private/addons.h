@@ -89,14 +89,24 @@
 #ifdef FLECS_NO_REST
 #undef FLECS_REST
 #endif
+#ifdef FLECS_NO_JOURNAL
+#undef FLECS_JOURNAL
+#endif
 
-/* Always included, if disabled log functions are replaced with dummy macros */
+/* Always included, if disabled functions are replaced with dummy macros */
+#include "flecs/addons/journal.h"
 #include "flecs/addons/log.h"
 
 #ifdef FLECS_MONITOR
+#ifndef FLECS_STATS
 #define FLECS_STATS
+#endif
+#ifndef FLECS_SYSTEM
 #define FLECS_SYSTEM
+#endif
+#ifndef FLECS_TIMER
 #define FLECS_TIMER
+#endif
 #endif
 
 #ifdef FLECS_APP
@@ -160,7 +170,9 @@
 #include "../addons/json.h"
 #endif
 #if defined(FLECS_EXPR) || defined(FLECS_META_C)
+#ifndef FLECS_META
 #define FLECS_META
+#endif
 #endif
 #ifdef FLECS_UNITS
 #ifdef FLECS_NO_UNITS

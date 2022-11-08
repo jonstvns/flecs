@@ -52,7 +52,7 @@ void flecs_bootstrap_hierarchy(ecs_world_t *world);
 
 /* Mark an entity as being watched. This is used to trigger automatic rematching
  * when entities used in system expressions change their components. */
-void flecs_add_flag(
+ecs_record_t* flecs_add_flag(
     ecs_world_t *world,
     ecs_entity_t entity,
     uint32_t flag);
@@ -67,7 +67,7 @@ void flecs_notify_on_remove(
     ecs_table_t *other_table,
     int32_t row,
     int32_t count,
-    ecs_table_diff_t *diff);
+    const ecs_type_t *diff);
 
 void flecs_notify_on_set(
     ecs_world_t *world,
@@ -81,6 +81,13 @@ int32_t flecs_relation_depth(
     const ecs_world_t *world,
     ecs_entity_t r,
     ecs_table_t *table);
+
+void flecs_instantiate(
+    ecs_world_t *world,
+    ecs_entity_t base,
+    ecs_table_t *table,
+    int32_t row,
+    int32_t count);
 
 ////////////////////////////////////////////////////////////////////////////////
 //// Query API
@@ -209,16 +216,6 @@ ecs_record_t flecs_to_row(
 uint64_t flecs_from_row(
     ecs_record_t record);
 
-/* Get actual row from record row */
-uint32_t flecs_record_to_row(
-    uint32_t row, 
-    bool *is_watched_out);
-
-/* Convert actual row to record row */
-uint32_t flecs_row_to_record(
-    uint32_t row, 
-    bool is_watched);
-
 /* Convert a symbol name to an entity name by removing the prefix */
 const char* flecs_name_from_symbol(
     ecs_world_t *world,
@@ -260,7 +257,24 @@ void _assert_func(
 void flecs_dump_backtrace(
     FILE *stream);
 
+void ecs_colorize_buf(
+    char *msg,
+    bool enable_colors,
+    ecs_strbuf_t *buf);
+
 bool flecs_isident(
     char ch);
+
+int32_t flecs_search_relation_w_idr(
+    const ecs_world_t *world,
+    const ecs_table_t *table,
+    int32_t offset,
+    ecs_id_t id,
+    ecs_entity_t rel,
+    ecs_flags32_t flags,
+    ecs_entity_t *subject_out,
+    ecs_id_t *id_out,
+    struct ecs_table_record_t **tr_out,
+    ecs_id_record_t *idr);
 
 #endif

@@ -13,6 +13,12 @@
     },
     "test": {
         "testsuites": [{
+            "id": "PrettyFunction",
+            "testcases": [
+                "component",
+                "enum"
+            ]
+        }, {
             "id": "Entity",
             "testcases": [
                 "new",
@@ -435,7 +441,8 @@
                 "multithread_system_w_query_each_w_world",
                 "multithread_system_w_query_iter",
                 "multithread_system_w_query_iter_w_iter",
-                "multithread_system_w_query_iter_w_world"
+                "multithread_system_w_query_iter_w_world",
+                "run_callback"
             ]
         }, {
             "id": "Event",
@@ -685,7 +692,43 @@
                 "inout_shortcuts",
                 "iter_column_w_const_as_array",
                 "iter_column_w_const_as_ptr",
-                "iter_column_w_const_deref"
+                "iter_column_w_const_deref",
+                "with_id",
+                "with_name",
+                "with_component",
+                "with_pair_id",
+                "with_pair_name",
+                "with_pair_components",
+                "with_pair_component_id",
+                "with_pair_component_name",
+                "with_enum",
+                "without_id",
+                "without_name",
+                "without_component",
+                "without_pair_id",
+                "without_pair_name",
+                "without_pair_components",
+                "without_pair_component_id",
+                "without_pair_component_name",
+                "without_enum",
+                "write_id",
+                "write_name",
+                "write_component",
+                "write_pair_id",
+                "write_pair_name",
+                "write_pair_components",
+                "write_pair_component_id",
+                "write_pair_component_name",
+                "write_enum",
+                "read_id",
+                "read_name",
+                "read_component",
+                "read_pair_id",
+                "read_pair_name",
+                "read_pair_components",
+                "read_pair_component_id",
+                "read_pair_component_name",
+                "read_enum"
             ]
         }, {
             "id": "RuleBuilder",
@@ -710,7 +753,9 @@
                 "get_first_direct",
                 "var_src_w_prefixed_name",
                 "var_first_w_prefixed_name",
-                "var_second_w_prefixed_name"
+                "var_second_w_prefixed_name",
+                "term_w_second_var_string",
+                "term_type_w_second_var_string"
             ]
         }, {
             "id": "SystemBuilder",
@@ -760,7 +805,8 @@
                 "on_add_tag_iter",
                 "on_add_tag_each",
                 "on_add_expr",
-                "observer_w_filter_term"
+                "observer_w_filter_term",
+                "run_callback"
             ]
         }, {
             "id": "Filter",
@@ -876,7 +922,9 @@
                 "module_tag_on_namespace",
                 "dtor_on_fini",
                 "implicit_module",
-                "module_in_namespace_w_root_name"
+                "module_in_namespace_w_root_name",
+                "module_as_entity",
+                "module_as_component"
             ]
         }, {
             "id": "ImplicitComponents",
@@ -988,6 +1036,7 @@
                 "template_component_w_same_namespace_name",
                 "template_component_w_namespace_name_and_namespaced_arg",
                 "template_component_w_same_namespace_name_and_namespaced_arg",
+                "template_component_from_module_2_args",
                 "entity_as_tag",
                 "entity_w_name_as_tag",
                 "entity_as_component",

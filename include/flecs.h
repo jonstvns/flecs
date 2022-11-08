@@ -145,12 +145,14 @@
 #define FLECS_OS_API_IMPL   /* Default implementation for OS API */
 #define FLECS_HTTP          /* Tiny HTTP server for connecting to remote UI */
 #define FLECS_REST          /* REST API for querying application data */
+// #define FLECS_JOURNAL    /* Journaling addon (disabled by default) */
 #endif // ifndef FLECS_CUSTOM_BUILD
 
 /** @} */
 
 #include "flecs/private/api_defines.h"
 #include "flecs/private/vector.h"           /* Vector datatype */
+#include "flecs/private/sparse.h"           /* Sparse set */
 #include "flecs/private/block_allocator.h"  /* Block allocator */
 #include "flecs/private/map.h"              /* Map */
 #include "flecs/private/allocator.h"        /* Allocator */
@@ -239,6 +241,12 @@ typedef struct ecs_type_hooks_t ecs_type_hooks_t;
 /** Type information */
 typedef struct ecs_type_info_t ecs_type_info_t;
 
+/* Internal index that stores tables tables for a (component) id */
+typedef struct ecs_id_record_t ecs_id_record_t;
+
+/* Internal table storage record */
+typedef struct ecs_table_record_t ecs_table_record_t;
+
 /* Mixins */
 typedef struct ecs_mixins_t ecs_mixins_t;
 
@@ -251,7 +259,9 @@ typedef struct ecs_mixins_t ecs_mixins_t;
  */
 
 /* Maximum number of components to add/remove in a single operation */
+#ifndef ECS_ID_CACHE_SIZE
 #define ECS_ID_CACHE_SIZE (32)
+#endif
 
 /* Maximum number of terms in desc (larger, as these are temp objects) */
 #define ECS_TERM_DESC_CACHE_SIZE (16)
@@ -509,6 +519,7 @@ struct ecs_term_t {
     char *name;                 /* Name of term */
 
     int32_t field_index;        /* Index of field for term in iterator */
+    ecs_id_record_t *idr;       /* Cached pointer to internal index */
 
     bool move;                  /* Used by internals */
 };
@@ -634,7 +645,6 @@ struct ecs_type_info_t {
 #include "flecs/private/api_types.h"        /* Supporting API types */
 #include "flecs/private/api_support.h"      /* Supporting API functions */
 #include "flecs/private/vec.h"              /* Vector */
-#include "flecs/private/sparse.h"           /* Sparse set */
 #include "flecs/private/hashmap.h"          /* Hashmap */
 
 /**
@@ -920,17 +930,19 @@ typedef struct ecs_world_info_t {
     ecs_ftime_t merge_time_total;     /* Total time spent in merges */
     ecs_ftime_t world_time_total;     /* Time elapsed in simulation */
     ecs_ftime_t world_time_total_raw; /* Time elapsed in simulation (no scaling) */
+    ecs_ftime_t rematch_time_total;   /* Time spent on query rematching */
     
-    int32_t frame_count_total;        /* Total number of frames */
-    int32_t merge_count_total;        /* Total number of merges */
+    int64_t frame_count_total;        /* Total number of frames */
+    int64_t merge_count_total;        /* Total number of merges */
+    int64_t rematch_count_total;      /* Total number of rematches */
 
-    int32_t id_create_total;          /* Total number of times a new id was created */
-    int32_t id_delete_total;          /* Total number of times an id was deleted */
-    int32_t table_create_total;       /* Total number of times a table was created */
-    int32_t table_delete_total;       /* Total number of times a table was deleted */
-    int32_t pipeline_build_count_total; /* Total number of pipeline builds */
-    int32_t systems_ran_frame;        /* Total number of systems ran in last frame */
-    int32_t observers_ran_frame;      /* Total number of times observer was invoked */
+    int64_t id_create_total;          /* Total number of times a new id was created */
+    int64_t id_delete_total;          /* Total number of times an id was deleted */
+    int64_t table_create_total;       /* Total number of times a table was created */
+    int64_t table_delete_total;       /* Total number of times a table was deleted */
+    int64_t pipeline_build_count_total; /* Total number of pipeline builds */
+    int64_t systems_ran_frame;        /* Total number of systems ran in last frame */
+    int64_t observers_ran_frame;      /* Total number of times observer was invoked */
 
     int32_t id_count;                 /* Number of ids in the world (excluding wildcards) */
     int32_t tag_id_count;             /* Number of tag (no data) ids in the world */
@@ -947,17 +959,17 @@ typedef struct ecs_world_info_t {
 
     /* -- Command counts -- */
     struct {
-        int32_t add_count;             /* add commands processed */
-        int32_t remove_count;          /* remove commands processed */
-        int32_t delete_count;          /* delete commands processed */
-        int32_t clear_count;           /* clear commands processed */
-        int32_t set_count;             /* set commands processed */
-        int32_t get_mut_count;         /* get_mut/emplace commands processed */
-        int32_t modified_count;        /* modified commands processed */
-        int32_t other_count;           /* other commands processed */
-        int32_t discard_count;         /* commands discarded, happens when entity is no longer alive when running the command */
-        int32_t batched_entity_count;  /* entities for which commands were batched */
-        int32_t batched_command_count; /* commands batched */
+        int64_t add_count;             /* add commands processed */
+        int64_t remove_count;          /* remove commands processed */
+        int64_t delete_count;          /* delete commands processed */
+        int64_t clear_count;           /* clear commands processed */
+        int64_t set_count;             /* set commands processed */
+        int64_t get_mut_count;         /* get_mut/emplace commands processed */
+        int64_t modified_count;        /* modified commands processed */
+        int64_t other_count;           /* other commands processed */
+        int64_t discard_count;         /* commands discarded, happens when entity is no longer alive when running the command */
+        int64_t batched_entity_count;  /* entities for which commands were batched */
+        int64_t batched_command_count; /* commands batched */
     } cmd;
 
     const char *name_prefix;          /* Value set by ecs_set_name_prefix. Used
@@ -3701,12 +3713,8 @@ typedef struct ecs_event_desc_t {
     /* Observable (usually the world) */
     ecs_poly_t *observable;
 
-    /* Table events apply to tables, not the entities in the table. When
-     * enabled, (up)set triggers are not notified. */
-    bool table_event;
-
-    /* When set, events will only be propagated by traversing the relationship */
-    ecs_entity_t relationship;
+    /* Event flags */
+    ecs_flags32_t flags;
 } ecs_event_desc_t;
 
 /** Send event.
@@ -3740,6 +3748,11 @@ typedef struct ecs_event_desc_t {
  */
 FLECS_API
 void ecs_emit( 
+    ecs_world_t *world,
+    ecs_event_desc_t *desc);
+
+FLECS_API
+void ecs_emit_2( 
     ecs_world_t *world,
     ecs_event_desc_t *desc);
 
@@ -3882,6 +3895,17 @@ int32_t ecs_iter_count(
  */
 FLECS_API
 bool ecs_iter_is_true(
+    ecs_iter_t *it);
+
+/** Get first matching entity from iterator.
+ * After this operation the application should treat the iterator as if it has
+ * been iterated until completion.
+ * 
+ * @param it The iterator.
+ * @return The first matching entity, or 0 if no entities were matched.
+ */
+FLECS_API
+ecs_entity_t ecs_iter_first(
     ecs_iter_t *it);
 
 /** Set value for iterator variable.

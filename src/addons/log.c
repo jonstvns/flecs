@@ -4,7 +4,6 @@
 
 #include <ctype.h>
 
-static
 void ecs_colorize_buf(
     char *msg,
     bool enable_colors,
@@ -128,7 +127,7 @@ void ecs_colorize_buf(
     }
 }
 
-void _ecs_logv(
+void _ecs_printv(
     int level,
     const char *file,
     int32_t line,
@@ -139,10 +138,6 @@ void _ecs_logv(
     (void)line;
 
     ecs_strbuf_t msg_buf = ECS_STRBUF_INIT;
-
-    if (level > ecs_os_api.log_level_) {
-        return;
-    }
 
     /* Apply color. Even if we don't want color, we still need to call the
      * colorize function to get rid of the color tags (e.g. #[green]) */
@@ -161,7 +156,7 @@ void _ecs_logv(
     }
 }
 
-void _ecs_log(
+void _ecs_print(
     int level,
     const char *file,
     int32_t line,
@@ -170,9 +165,41 @@ void _ecs_log(
 {
     va_list args;
     va_start(args, fmt);
-    _ecs_logv(level, file, line, fmt, args);
+    _ecs_printv(level, file, line, fmt, args);
     va_end(args);    
 }
+
+void _ecs_logv(
+    int level,
+    const char *file,
+    int32_t line,
+    const char *fmt,
+    va_list args)
+{
+    if (level > ecs_os_api.log_level_) {
+        return;
+    }
+
+    _ecs_printv(level, file, line, fmt, args);
+}
+
+void _ecs_log(
+    int level,
+    const char *file,
+    int32_t line,
+    const char *fmt,
+    ...)
+{
+    if (level > ecs_os_api.log_level_) {
+        return;
+    }
+
+    va_list args;
+    va_start(args, fmt);
+    _ecs_printv(level, file, line, fmt, args);
+    va_end(args);    
+}
+
 
 void _ecs_log_push(
     int32_t level) 
@@ -187,6 +214,7 @@ void _ecs_log_pop(
 {
     if (level <= ecs_os_api.log_level_) {
         ecs_os_api.log_indent_ --;
+        ecs_assert(ecs_os_api.log_indent_ >= 0, ECS_INTERNAL_ERROR, NULL);
     }
 }
 

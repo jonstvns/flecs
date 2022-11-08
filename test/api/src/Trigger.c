@@ -1635,6 +1635,7 @@ void Trigger_on_add_superset() {
 
     test_int(ctx.e[0], e);
     test_int(ctx.c[0][0], TagA);
+    test_int(ctx.s[0][0], base);
 
     ecs_os_zeromem(&ctx);
 
@@ -1685,6 +1686,7 @@ void Trigger_on_add_superset_2_levels() {
 
     test_int(ctx.e[0], e);
     test_int(ctx.c[0][0], TagA);
+    test_int(ctx.s[0][0], base_of_base);
 
     ecs_os_zeromem(&ctx);
 
@@ -2324,6 +2326,8 @@ void Trigger_trigger_w_named_entity() {
 
 void RemoveSelf(ecs_iter_t *it) {
     Self *s = ecs_field(it, Self, 1);
+    test_assert(s != NULL);
+
     ecs_id_t ecs_id(Self) = ecs_field_id(it, 1);
 
     int i;
@@ -3207,6 +3211,7 @@ void Trigger_on_add_base_superset_trigger() {
     test_int(ctx.invoked, 0);
 
     ecs_add(world, base, TagA);
+
     test_int(ctx.invoked, 1);
     test_int(ctx.count, 1);
     test_int(ctx.system, t);
@@ -4246,7 +4251,7 @@ void Trigger_on_set_superset_w_component() {
     test_int(ctx.s[0][0], 0);
 
     ecs_os_zeromem(&ctx);
-	
+
 	ecs_entity_t i = ecs_new_w_pair(world, EcsIsA, b);
     test_int(ctx.invoked, 1);
     test_int(ctx.count, 1);
@@ -4356,15 +4361,16 @@ void Trigger_on_set_self_from_child_of_prefab() {
     });
 
     ecs_entity_t inst = ecs_new_w_pair(world, EcsIsA, base);
-    ecs_entity_t inst_child = ecs_lookup_child(world, inst, "Child");
-    test_assert(inst_child != 0);
-    test_assert(ecs_has(world, inst_child, Position));
-    test_assert(ecs_owns(world, inst_child, Position));
-
     test_int(ctx.invoked, 1);
     test_int(ctx.count, 1);
+
+    ecs_entity_t inst_child = ecs_lookup_child(world, inst, "Child");
+    test_assert(inst_child != 0);
     test_int(ctx.e[0], inst_child);
     test_int(ctx.s[0][0], 0);
+
+    test_assert(ecs_has(world, inst_child, Position));
+    test_assert(ecs_owns(world, inst_child, Position));
 
     ecs_fini(world);
 }
@@ -4406,8 +4412,6 @@ void Trigger_on_set_self_superset_from_child_of_prefab() {
 }
 
 void Trigger_on_set_self_from_child_base_of_prefab() {
-    test_quarantine("15 May 2022");
-
     ecs_world_t *world = ecs_mini();
 
     ECS_COMPONENT(world, Position);
@@ -4656,6 +4660,235 @@ void Trigger_not_only_w_base_no_match() {
     test_int(ctx.invoked, 0);
 
     ecs_delete(world, i);
+    test_int(ctx.invoked, 0);
+
+    ecs_fini(world);
+}
+
+void Trigger_on_set_superset_after_filter_observer() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_COMPONENT(world, Position);
+
+    Probe ctx_1 = {0};
+    ecs_observer(world, {
+        .filter.terms = {
+            { ecs_id(Position) }
+        },
+        .filter.flags = EcsFilterIsFilter,
+        .events = { EcsOnSet },
+        .callback = Trigger,
+        .ctx = &ctx_1
+    });
+
+    Probe ctx_2 = {0};
+    ecs_observer(world, {
+        .filter.terms = {
+            { ecs_id(Position), .src.flags = EcsUp }
+        },
+        .events = { EcsOnSet },
+        .callback = Trigger_w_value,
+        .ctx = &ctx_2
+    });
+
+    ecs_entity_t base = ecs_new_id(world);
+    ecs_entity_t inst = ecs_new_w_pair(world, EcsIsA, base);
+
+    test_int(ctx_1.invoked, 0);
+    test_int(ctx_2.invoked, 0);
+
+    ecs_set(world, base, Position, {10, 20});
+
+    test_int(ctx_1.invoked, 2); 
+
+    test_int(ctx_2.invoked, 1);
+    test_int(ctx_2.count, 1);
+    test_int(ctx_2.e[0], inst);
+    test_int(ctx_2.c[0][0], ecs_id(Position));
+    test_int(ctx_2.s[0][0], base);
+
+    ecs_fini(world);
+}
+
+void Trigger_on_set_superset_after_filter_observer_w_on_add() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_COMPONENT(world, Position);
+
+    Probe ctx_1 = {0};
+    ecs_observer(world, {
+        .filter.terms = {
+            { ecs_id(Position) }
+        },
+        .filter.flags = EcsFilterIsFilter,
+        .events = { EcsOnAdd },
+        .callback = Trigger,
+        .ctx = &ctx_1
+    });
+
+    Probe ctx_2 = {0};
+    ecs_observer(world, {
+        .filter.terms = {
+            { ecs_id(Position), .src.flags = EcsUp }
+        },
+        .events = { EcsOnAdd },
+        .callback = Trigger,
+        .ctx = &ctx_2
+    });
+
+    ecs_entity_t base = ecs_new_id(world);
+    ecs_entity_t inst = ecs_new_w_pair(world, EcsIsA, base);
+
+    test_int(ctx_1.invoked, 0);
+    test_int(ctx_2.invoked, 0);
+
+    ecs_set(world, base, Position, {10, 20});
+
+    test_int(ctx_1.invoked, 2);
+
+    test_int(ctx_2.invoked, 1);
+    test_int(ctx_2.count, 1);
+    test_int(ctx_2.e[0], inst);
+    test_int(ctx_2.c[0][0], ecs_id(Position));
+    test_int(ctx_2.s[0][0], base);
+
+    ecs_fini(world);
+}
+
+void Trigger_on_set_superset_after_filter_observer_w_on_add_isa_after_set() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_COMPONENT(world, Position);
+
+    Probe ctx_1 = {0};
+    ecs_observer(world, {
+        .filter.terms = {
+            { ecs_id(Position), .src.flags = EcsUp }
+        },
+        .filter.flags = EcsFilterIsFilter,
+        .events = { EcsOnAdd },
+        .callback = Trigger,
+        .ctx = &ctx_1
+    });
+
+    Probe ctx_2 = {0};
+    ecs_observer(world, {
+        .filter.terms = {
+            { ecs_id(Position), .src.flags = EcsUp }
+        },
+        .events = { EcsOnAdd },
+        .callback = Trigger,
+        .ctx = &ctx_2
+    });
+
+    ecs_entity_t base = ecs_new_id(world);
+    ecs_set(world, base, Position, {10, 20});
+    test_int(ctx_1.invoked, 0);
+    test_int(ctx_2.invoked, 0);
+
+    ecs_entity_t inst = ecs_new_w_pair(world, EcsIsA, base);
+
+    test_int(ctx_1.invoked, 1);
+    test_int(ctx_1.count, 1);
+    test_int(ctx_1.e[0], inst);
+    test_int(ctx_1.c[0][0], ecs_id(Position));
+    test_int(ctx_1.s[0][0], base);
+
+    test_int(ctx_2.invoked, 1);
+    test_int(ctx_2.count, 1);
+    test_int(ctx_2.e[0], inst);
+    test_int(ctx_2.c[0][0], ecs_id(Position));
+    test_int(ctx_2.s[0][0], base);
+
+    ecs_fini(world);
+}
+
+void Trigger_on_set_superset_after_filter_observer_w_on_add_2() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_COMPONENT(world, Position);
+    ECS_COMPONENT(world, Velocity);
+
+    // first observer causes observer to be initialized with filter flag
+    Probe ctx_1 = {0};
+    ecs_observer(world, { 
+        .filter.terms = {
+            { ecs_id(Position) }
+        },
+        .filter.flags = EcsFilterIsFilter,
+        .events = { EcsOnAdd },
+        .callback = Trigger,
+        .ctx = &ctx_1
+    });
+
+    // second observer is not a filter, so value should be avaulable
+    Probe ctx_2 = {0};
+    ecs_observer(world, {
+        .filter.terms = {
+            { ecs_id(Position), .src.flags = EcsUp }
+        },
+        .events = { EcsOnAdd },
+        .callback = Trigger,
+        .ctx = &ctx_2
+    });
+
+    ecs_entity_t base = ecs_new_id(world);
+    ecs_set(world, base, Position, {10, 20});
+    ecs_override(world, base, Position); // override causes emit with 2 ids
+    
+    test_int(ctx_1.invoked, 1);
+    test_int(ctx_2.invoked, 0);
+
+    ecs_os_zeromem(&ctx_1);
+
+    ecs_entity_t inst = ecs_new_w_pair(world, EcsIsA, base);
+
+    test_int(ctx_1.invoked, 1);
+    test_int(ctx_1.count, 1);
+    test_int(ctx_1.e[0], inst);
+    test_int(ctx_1.c[0][0], ecs_id(Position));
+    test_int(ctx_1.s[0][0], 0); // override
+
+    test_int(ctx_2.invoked, 1);
+    test_int(ctx_2.count, 1);
+    test_int(ctx_2.e[0], inst);
+    test_int(ctx_2.c[0][0], ecs_id(Position));
+    test_int(ctx_2.s[0][0], base);
+
+    ecs_fini(world);
+}
+
+void Trigger_propagate_w_union_pair() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_TAG(world, Tag);
+    ECS_TAG(world, RelX);
+    ECS_ENTITY(world, RelY, Union);
+
+    ecs_entity_t base = ecs_new_id(world);
+    ecs_entity_t tgt = ecs_new_id(world);
+    ecs_new_w_pair(world, EcsIsA, base);
+
+    Probe ctx = {0};
+    ecs_observer_init(world, &(ecs_observer_desc_t){
+        .filter.terms[0] = {
+            .id = Tag,
+            .src.flags = EcsUp
+        },
+        .events = {EcsOnAdd},
+        .callback = Trigger,
+        .ctx = &ctx
+    });
+    test_int(ctx.invoked, 0);
+    
+    ecs_add_id(world, base, Tag);
+    test_int(ctx.invoked, 1);
+
+    ecs_os_zeromem(&ctx);
+    ecs_add_pair(world, base, RelX, tgt);
+    test_int(ctx.invoked, 0);
+
+    ecs_add_pair(world, base, RelY, tgt);
     test_int(ctx.invoked, 0);
 
     ecs_fini(world);

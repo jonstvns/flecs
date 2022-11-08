@@ -1,6 +1,7 @@
 #include <addons.h>
 
 static ECS_COMPONENT_DECLARE(Position);
+static ECS_DECLARE(Tag);
 
 void MultiThread_setup() {
     ecs_log_set_level(-3);
@@ -1103,7 +1104,7 @@ void MultiThread_no_staging_w_multithread() {
 
         ecs_system_init(world, &(ecs_system_desc_t){
             .callback = CreateQuery,
-            .no_staging = true,
+            .no_readonly = true,
             .entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}})
         });
 
@@ -1126,4 +1127,133 @@ void MultiThread_multithread_w_monitor_addon() {
 
     /* Make sure monitor could be run in multithreaded mode */
     test_assert(true);
+}
+
+static int system_ctx = 0;
+
+void System_w_ctx(ecs_iter_t *it) {
+    test_assert(it->ctx == &system_ctx);
+    test_assert(it->system != 0);
+    test_assert(it->delta_time != 0);
+    system_ctx ++;
+}
+
+void System_w_binding_ctx(ecs_iter_t *it) {
+    test_assert(it->binding_ctx == &system_ctx);
+    test_assert(it->system != 0);
+    test_assert(it->delta_time != 0);
+    system_ctx ++;
+}
+
+void MultiThread_get_ctx() {
+    ecs_world_t *world = ecs_init();
+
+    ecs_set_threads(world, 2);
+
+    ecs_system_init(world, &(ecs_system_desc_t){
+        .entity = ecs_entity(world, { .add = { ecs_dependson(EcsOnUpdate) } }),
+        .callback = System_w_ctx,
+        .multi_threaded = true,
+        .ctx = &system_ctx
+    });
+
+    ecs_progress(world, 0);
+
+    test_assert(system_ctx != 0);
+
+    ecs_fini(world);
+}
+
+void MultiThread_get_binding_ctx() {
+    ecs_world_t *world = ecs_init();
+
+    ecs_set_threads(world, 2);
+
+    ecs_system_init(world, &(ecs_system_desc_t){
+        .entity = ecs_entity(world, { .add = { ecs_dependson(EcsOnUpdate) } }),
+        .callback = System_w_binding_ctx,
+        .multi_threaded = true,
+        .binding_ctx = &system_ctx
+    });
+
+    ecs_progress(world, 0);
+
+    test_assert(system_ctx != 0);
+
+    ecs_fini(world);
+}
+
+void MultiThread_get_ctx_w_run() {
+    ecs_world_t *world = ecs_init();
+
+    ecs_set_threads(world, 2);
+
+    ecs_system_init(world, &(ecs_system_desc_t){
+        .entity = ecs_entity(world, { .add = { ecs_dependson(EcsOnUpdate) } }),
+        .run = System_w_ctx,
+        .multi_threaded = true,
+        .ctx = &system_ctx
+    });
+
+    ecs_progress(world, 0);
+
+    test_assert(system_ctx != 0);
+
+    ecs_fini(world);
+}
+
+void MultiThread_get_binding_ctx_w_run() {
+    ecs_world_t *world = ecs_init();
+
+    ecs_set_threads(world, 2);
+
+    ecs_system_init(world, &(ecs_system_desc_t){
+        .entity = ecs_entity(world, { .add = { ecs_dependson(EcsOnUpdate) } }),
+        .run = System_w_binding_ctx,
+        .multi_threaded = true,
+        .binding_ctx = &system_ctx
+    });
+
+    ecs_progress(world, 0);
+
+    test_assert(system_ctx != 0);
+
+    ecs_fini(world);
+}
+
+void sys(ecs_iter_t *it) { }
+
+void sys_bulk_init(ecs_iter_t *it) {
+    ecs_bulk_init(it->world, &(ecs_bulk_desc_t){
+        .count = 10,
+        .ids = {Tag}
+    });
+}
+
+void MultiThread_bulk_new_in_no_readonly_w_multithread() {
+    ecs_world_t *world = ecs_init();
+
+    ECS_TAG_DEFINE(world, Tag);
+
+    ecs_system(world, {
+        .entity = ecs_entity(world, { .add = { ecs_dependson(EcsOnUpdate) }}),
+        .no_readonly = true,
+        .callback = sys_bulk_init
+    });
+
+    ecs_system(world, {
+        .entity = ecs_entity(world, { .add = { ecs_dependson(EcsOnUpdate) }}),
+        .multi_threaded = true,
+        .callback = sys
+    });
+
+    ecs_set_threads(world, 64);
+
+    for (int i = 0; i < 100; i ++) {
+        ecs_progress(world, 0);
+    }
+
+    test_int(ecs_count(world, Tag), 100 * 10);
+
+    ecs_fini(world);
 }

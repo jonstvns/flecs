@@ -105,9 +105,9 @@ typedef struct ecs_table_event_t {
 
 /** Stage-specific component data */
 struct ecs_data_t {
-    ecs_vec_t entities;       /* Entity identifiers */
-    ecs_vec_t records;    /* Ptrs to records in main entity index */
-    ecs_vec_t *columns;       /* Component columns */
+    ecs_vec_t entities;          /* Entity identifiers */
+    ecs_vec_t records;           /* Ptrs to records in main entity index */
+    ecs_vec_t *columns;          /* Component columns */
     ecs_switch_t *sw_columns;    /* Switch columns */
     ecs_bitset_t *bs_columns;    /* Bitset columns */
 };
@@ -118,8 +118,6 @@ struct ecs_data_t {
 typedef struct ecs_table_diff_t {
     ecs_type_t added;         /* Components added between tables */
     ecs_type_t removed;       /* Components removed between tables */
-    ecs_type_t on_set;        /* OnSet from exposing/adding base components */
-    ecs_type_t un_set;        /* UnSet from hiding/removing base components */
 } ecs_table_diff_t;
 
 /** Builder for table diff. The table diff type itself doesn't use ecs_vec_t to
@@ -128,8 +126,6 @@ typedef struct ecs_table_diff_t {
 typedef struct ecs_table_diff_builder_t {
     ecs_vec_t added;
     ecs_vec_t removed;
-    ecs_vec_t on_set;
-    ecs_vec_t un_set;
 } ecs_table_diff_builder_t;
 
 /** Edge linked list (used to keep track of incoming edges) */
@@ -364,7 +360,11 @@ struct ecs_query_t {
 /** All observers for a specific (component) id */
 typedef struct ecs_event_id_record_t {
     /* Triggers for Self */
-    ecs_map_t observers; /* map<trigger_id, trigger_t> */
+    ecs_map_t self;    /* map<trigger_id, trigger_t> */
+    ecs_map_t self_up; /* map<trigger_id, trigger_t> */
+    ecs_map_t up;      /* map<trigger_id, trigger_t> */
+
+    ecs_map_t observers;     /* map<trigger_id, trigger_t> */
 
     /* Triggers for SuperSet, SubSet */
     ecs_map_t set_observers; /* map<trigger_id, trigger_t> */
@@ -376,11 +376,6 @@ typedef struct ecs_event_id_record_t {
     int32_t observer_count;
 } ecs_event_id_record_t;
 
-/** All observers for a specific event */
-typedef struct ecs_event_record_t {
-    ecs_map_t event_ids;     /* map<id, ecs_event_id_record_t> */
-} ecs_event_record_t;
-
 /* World level allocators are for operations that are not multithreaded */
 typedef struct ecs_world_allocators_t {
     ecs_map_params_t ptr;
@@ -390,6 +385,7 @@ typedef struct ecs_world_allocators_t {
     ecs_block_allocator_t graph_edge_lo;
     ecs_block_allocator_t graph_edge;
     ecs_block_allocator_t id_record;
+    ecs_block_allocator_t id_record_chunk;
     ecs_block_allocator_t table_diff;
     ecs_block_allocator_t sparse_chunk;
     ecs_block_allocator_t hashmap;
@@ -544,7 +540,8 @@ struct ecs_world_t {
     ecs_header_t hdr;
 
     /* --  Type metadata -- */
-    ecs_map_t id_index;          /* map<id, ecs_id_record_t*> */
+    ecs_sparse_t id_index_lo;    /* sparse<id, ecs_id_record_t> */
+    ecs_map_t id_index_hi;       /* map<id, ecs_id_record_t*> */
     ecs_sparse_t *type_info;     /* sparse<type_id, type_info_t> */
 
     /* -- Cached handle to id records -- */

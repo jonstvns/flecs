@@ -1714,3 +1714,233 @@ void Iter_iter_restore_stack_iter() {
 
     ecs_fini(world);
 }
+
+void Iter_get_first() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_TAG(world, Tag);
+
+    ecs_entity_t e = ecs_new(world, Tag);
+    ecs_new(world, Tag);
+    ecs_new(world, Tag);
+
+    ecs_filter_t *f = ecs_filter_init(world, &(ecs_filter_desc_t){
+        .terms = {{ Tag }}
+    });
+
+    ecs_iter_t it = ecs_filter_iter(world, f);
+    ecs_entity_t first = ecs_iter_first(&it);
+    test_assert(first == e);
+
+    ecs_filter_fini(f);
+
+    ecs_fini(world);
+}
+
+void Iter_page_iter_w_only_tag() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_TAG(world, Tag);
+
+    ecs_filter_t *f = ecs_filter(world, {
+        .terms = {{ Tag }}
+    });
+    
+    ecs_new(world, Tag);
+    ecs_entity_t e2 = ecs_new(world, Tag);
+
+    ecs_iter_t it = ecs_filter_iter(world, f);
+    ecs_iter_t pit = ecs_page_iter(&it, 1, 0);
+
+    test_assert(ecs_page_next(&pit));
+    test_int(pit.count, 1);
+    test_uint(pit.entities[0], e2);
+    test_assert(!ecs_page_next(&pit));
+
+    ecs_filter_fini(f);
+
+    ecs_fini(world);
+}
+
+void Iter_worker_iter_w_only_tag() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_TAG(world, Tag);
+
+    ecs_filter_t *f = ecs_filter(world, {
+        .terms = {{ Tag }}
+    });
+    
+    ecs_new(world, Tag);
+    ecs_entity_t e2 = ecs_new(world, Tag);
+
+    ecs_iter_t it = ecs_filter_iter(world, f);
+    ecs_iter_t pit = ecs_worker_iter(&it, 1, 2);
+
+    test_assert(ecs_worker_next(&pit));
+    test_int(pit.count, 1);
+    test_uint(pit.entities[0], e2);
+    test_assert(!ecs_worker_next(&pit));
+
+    ecs_filter_fini(f);
+
+    ecs_fini(world);
+}
+
+void Iter_page_iter_w_inout_none() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_COMPONENT(world, Position);
+
+    ecs_filter_t *f = ecs_filter(world, {
+        .terms = {{ ecs_id(Position), .inout = EcsInOutNone }}
+    });
+    
+    ecs_new(world, Position);
+    ecs_entity_t e2 = ecs_new(world, Position);
+
+    ecs_iter_t it = ecs_filter_iter(world, f);
+    ecs_iter_t pit = ecs_page_iter(&it, 1, 0);
+
+    test_assert(ecs_page_next(&pit));
+    test_int(pit.count, 1);
+    test_uint(pit.entities[0], e2);
+    test_assert(!ecs_page_next(&pit));
+
+    ecs_filter_fini(f);
+
+    ecs_fini(world);
+}
+
+void Iter_worker_iter_w_inout_none() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_COMPONENT(world, Position);
+
+    ecs_filter_t *f = ecs_filter(world, {
+        .terms = {{ ecs_id(Position), .inout = EcsInOutNone }}
+    });
+    
+    ecs_new(world, Position);
+    ecs_entity_t e2 = ecs_new(world, Position);
+
+    ecs_iter_t it = ecs_filter_iter(world, f);
+    ecs_iter_t pit = ecs_worker_iter(&it, 1, 2);
+
+    test_assert(ecs_worker_next(&pit));
+    test_int(pit.count, 1);
+    test_uint(pit.entities[0], e2);
+    test_assert(!ecs_worker_next(&pit));
+
+    ecs_filter_fini(f);
+
+    ecs_fini(world);
+}
+
+void Iter_page_iter_w_ctx() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_TAG(world, TagA);
+
+    ecs_filter_t *f = ecs_filter(world, {
+        .terms = {{ TagA  }}
+    });
+    
+    ecs_new(world, TagA);
+
+    int ctx;
+
+    ecs_iter_t it = ecs_filter_iter(world, f);
+    it.ctx = &ctx;
+
+    ecs_iter_t pit = ecs_page_iter(&it, 0, 1);
+    test_assert(pit.ctx == &ctx);
+
+    test_assert(ecs_page_next(&pit));
+    test_assert(!ecs_page_next(&pit));
+
+    ecs_filter_fini(f);
+
+    ecs_fini(world);
+}
+
+void Iter_page_iter_w_binding_ctx() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_TAG(world, TagA);
+
+    ecs_filter_t *f = ecs_filter(world, {
+        .terms = {{ TagA  }}
+    });
+    
+    ecs_new(world, TagA);
+
+    int ctx;
+
+    ecs_iter_t it = ecs_filter_iter(world, f);
+    it.binding_ctx = &ctx;
+
+    ecs_iter_t pit = ecs_page_iter(&it, 0, 1);
+    test_assert(pit.binding_ctx == &ctx);
+
+    test_assert(ecs_page_next(&pit));
+    test_assert(!ecs_page_next(&pit));
+
+    ecs_filter_fini(f);
+
+    ecs_fini(world);
+}
+
+void Iter_worker_iter_w_ctx() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_TAG(world, TagA);
+
+    ecs_filter_t *f = ecs_filter(world, {
+        .terms = {{ TagA  }}
+    });
+    
+    ecs_new(world, TagA);
+
+    int ctx;
+
+    ecs_iter_t it = ecs_filter_iter(world, f);
+    it.ctx = &ctx;
+
+    ecs_iter_t pit = ecs_worker_iter(&it, 0, 2);
+    test_assert(pit.ctx == &ctx);
+
+    test_assert(ecs_worker_next(&pit));
+    test_assert(!ecs_worker_next(&pit));
+
+    ecs_filter_fini(f);
+
+    ecs_fini(world);
+}
+
+void Iter_worker_iter_w_binding_ctx() {
+    ecs_world_t *world = ecs_mini();
+
+    ECS_TAG(world, TagA);
+
+    ecs_filter_t *f = ecs_filter(world, {
+        .terms = {{ TagA  }}
+    });
+    
+    ecs_new(world, TagA);
+
+    int ctx;
+
+    ecs_iter_t it = ecs_filter_iter(world, f);
+    it.binding_ctx = &ctx;
+
+    ecs_iter_t pit = ecs_worker_iter(&it, 0, 2);
+    test_assert(pit.binding_ctx == &ctx);
+
+    test_assert(ecs_worker_next(&pit));
+    test_assert(!ecs_worker_next(&pit));
+
+    ecs_filter_fini(f);
+
+    ecs_fini(world);
+}

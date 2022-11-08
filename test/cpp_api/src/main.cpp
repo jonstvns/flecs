@@ -8,6 +8,10 @@
 
 #include <cpp_api.h>
 
+// Testsuite 'PrettyFunction'
+void PrettyFunction_component(void);
+void PrettyFunction_enum(void);
+
 // Testsuite 'Entity'
 void Entity_new(void);
 void Entity_new_named(void);
@@ -420,6 +424,7 @@ void System_multithread_system_w_query_each_w_world(void);
 void System_multithread_system_w_query_iter(void);
 void System_multithread_system_w_query_iter_w_iter(void);
 void System_multithread_system_w_query_iter_w_world(void);
+void System_run_callback(void);
 
 // Testsuite 'Event'
 void Event_evt_1_id_entity(void);
@@ -660,6 +665,42 @@ void FilterBuilder_inout_shortcuts(void);
 void FilterBuilder_iter_column_w_const_as_array(void);
 void FilterBuilder_iter_column_w_const_as_ptr(void);
 void FilterBuilder_iter_column_w_const_deref(void);
+void FilterBuilder_with_id(void);
+void FilterBuilder_with_name(void);
+void FilterBuilder_with_component(void);
+void FilterBuilder_with_pair_id(void);
+void FilterBuilder_with_pair_name(void);
+void FilterBuilder_with_pair_components(void);
+void FilterBuilder_with_pair_component_id(void);
+void FilterBuilder_with_pair_component_name(void);
+void FilterBuilder_with_enum(void);
+void FilterBuilder_without_id(void);
+void FilterBuilder_without_name(void);
+void FilterBuilder_without_component(void);
+void FilterBuilder_without_pair_id(void);
+void FilterBuilder_without_pair_name(void);
+void FilterBuilder_without_pair_components(void);
+void FilterBuilder_without_pair_component_id(void);
+void FilterBuilder_without_pair_component_name(void);
+void FilterBuilder_without_enum(void);
+void FilterBuilder_write_id(void);
+void FilterBuilder_write_name(void);
+void FilterBuilder_write_component(void);
+void FilterBuilder_write_pair_id(void);
+void FilterBuilder_write_pair_name(void);
+void FilterBuilder_write_pair_components(void);
+void FilterBuilder_write_pair_component_id(void);
+void FilterBuilder_write_pair_component_name(void);
+void FilterBuilder_write_enum(void);
+void FilterBuilder_read_id(void);
+void FilterBuilder_read_name(void);
+void FilterBuilder_read_component(void);
+void FilterBuilder_read_pair_id(void);
+void FilterBuilder_read_pair_name(void);
+void FilterBuilder_read_pair_components(void);
+void FilterBuilder_read_pair_component_id(void);
+void FilterBuilder_read_pair_component_name(void);
+void FilterBuilder_read_enum(void);
 
 // Testsuite 'RuleBuilder'
 void RuleBuilder_1_type(void);
@@ -683,6 +724,8 @@ void RuleBuilder_get_first_direct(void);
 void RuleBuilder_var_src_w_prefixed_name(void);
 void RuleBuilder_var_first_w_prefixed_name(void);
 void RuleBuilder_var_second_w_prefixed_name(void);
+void RuleBuilder_term_w_second_var_string(void);
+void RuleBuilder_term_type_w_second_var_string(void);
 
 // Testsuite 'SystemBuilder'
 void SystemBuilder_builder_assign_same_type(void);
@@ -729,6 +772,7 @@ void Observer_on_add_tag_iter(void);
 void Observer_on_add_tag_each(void);
 void Observer_on_add_expr(void);
 void Observer_observer_w_filter_term(void);
+void Observer_run_callback(void);
 
 // Testsuite 'Filter'
 void Filter_term_each_component(void);
@@ -837,6 +881,8 @@ void Module_module_tag_on_namespace(void);
 void Module_dtor_on_fini(void);
 void Module_implicit_module(void);
 void Module_module_in_namespace_w_root_name(void);
+void Module_module_as_entity(void);
+void Module_module_as_component(void);
 
 // Testsuite 'ImplicitComponents'
 void ImplicitComponents_add(void);
@@ -940,6 +986,7 @@ void World_template_component_w_namespace_name(void);
 void World_template_component_w_same_namespace_name(void);
 void World_template_component_w_namespace_name_and_namespaced_arg(void);
 void World_template_component_w_same_namespace_name_and_namespaced_arg(void);
+void World_template_component_from_module_2_args(void);
 void World_entity_as_tag(void);
 void World_entity_w_name_as_tag(void);
 void World_entity_as_component(void);
@@ -1037,6 +1084,17 @@ void Doc_set_name(void);
 void Doc_set_link(void);
 void Doc_set_color(void);
 void Doc_get_name_no_doc_name(void);
+
+bake_test_case PrettyFunction_testcases[] = {
+    {
+        "component",
+        PrettyFunction_component
+    },
+    {
+        "enum",
+        PrettyFunction_enum
+    }
+};
 
 bake_test_case Entity_testcases[] = {
     {
@@ -2657,6 +2715,10 @@ bake_test_case System_testcases[] = {
     {
         "multithread_system_w_query_iter_w_world",
         System_multithread_system_w_query_iter_w_world
+    },
+    {
+        "run_callback",
+        System_run_callback
     }
 };
 
@@ -3592,6 +3654,150 @@ bake_test_case FilterBuilder_testcases[] = {
     {
         "iter_column_w_const_deref",
         FilterBuilder_iter_column_w_const_deref
+    },
+    {
+        "with_id",
+        FilterBuilder_with_id
+    },
+    {
+        "with_name",
+        FilterBuilder_with_name
+    },
+    {
+        "with_component",
+        FilterBuilder_with_component
+    },
+    {
+        "with_pair_id",
+        FilterBuilder_with_pair_id
+    },
+    {
+        "with_pair_name",
+        FilterBuilder_with_pair_name
+    },
+    {
+        "with_pair_components",
+        FilterBuilder_with_pair_components
+    },
+    {
+        "with_pair_component_id",
+        FilterBuilder_with_pair_component_id
+    },
+    {
+        "with_pair_component_name",
+        FilterBuilder_with_pair_component_name
+    },
+    {
+        "with_enum",
+        FilterBuilder_with_enum
+    },
+    {
+        "without_id",
+        FilterBuilder_without_id
+    },
+    {
+        "without_name",
+        FilterBuilder_without_name
+    },
+    {
+        "without_component",
+        FilterBuilder_without_component
+    },
+    {
+        "without_pair_id",
+        FilterBuilder_without_pair_id
+    },
+    {
+        "without_pair_name",
+        FilterBuilder_without_pair_name
+    },
+    {
+        "without_pair_components",
+        FilterBuilder_without_pair_components
+    },
+    {
+        "without_pair_component_id",
+        FilterBuilder_without_pair_component_id
+    },
+    {
+        "without_pair_component_name",
+        FilterBuilder_without_pair_component_name
+    },
+    {
+        "without_enum",
+        FilterBuilder_without_enum
+    },
+    {
+        "write_id",
+        FilterBuilder_write_id
+    },
+    {
+        "write_name",
+        FilterBuilder_write_name
+    },
+    {
+        "write_component",
+        FilterBuilder_write_component
+    },
+    {
+        "write_pair_id",
+        FilterBuilder_write_pair_id
+    },
+    {
+        "write_pair_name",
+        FilterBuilder_write_pair_name
+    },
+    {
+        "write_pair_components",
+        FilterBuilder_write_pair_components
+    },
+    {
+        "write_pair_component_id",
+        FilterBuilder_write_pair_component_id
+    },
+    {
+        "write_pair_component_name",
+        FilterBuilder_write_pair_component_name
+    },
+    {
+        "write_enum",
+        FilterBuilder_write_enum
+    },
+    {
+        "read_id",
+        FilterBuilder_read_id
+    },
+    {
+        "read_name",
+        FilterBuilder_read_name
+    },
+    {
+        "read_component",
+        FilterBuilder_read_component
+    },
+    {
+        "read_pair_id",
+        FilterBuilder_read_pair_id
+    },
+    {
+        "read_pair_name",
+        FilterBuilder_read_pair_name
+    },
+    {
+        "read_pair_components",
+        FilterBuilder_read_pair_components
+    },
+    {
+        "read_pair_component_id",
+        FilterBuilder_read_pair_component_id
+    },
+    {
+        "read_pair_component_name",
+        FilterBuilder_read_pair_component_name
+    },
+    {
+        "read_enum",
+        FilterBuilder_read_enum
     }
 };
 
@@ -3679,6 +3885,14 @@ bake_test_case RuleBuilder_testcases[] = {
     {
         "var_second_w_prefixed_name",
         RuleBuilder_var_second_w_prefixed_name
+    },
+    {
+        "term_w_second_var_string",
+        RuleBuilder_term_w_second_var_string
+    },
+    {
+        "term_type_w_second_var_string",
+        RuleBuilder_term_type_w_second_var_string
     }
 };
 
@@ -3853,6 +4067,10 @@ bake_test_case Observer_testcases[] = {
     {
         "observer_w_filter_term",
         Observer_observer_w_filter_term
+    },
+    {
+        "run_callback",
+        Observer_run_callback
     }
 };
 
@@ -4265,6 +4483,14 @@ bake_test_case Module_testcases[] = {
     {
         "module_in_namespace_w_root_name",
         Module_module_in_namespace_w_root_name
+    },
+    {
+        "module_as_entity",
+        Module_module_as_entity
+    },
+    {
+        "module_as_component",
+        Module_module_as_component
     }
 };
 
@@ -4659,6 +4885,10 @@ bake_test_case World_testcases[] = {
         World_template_component_w_same_namespace_name_and_namespaced_arg
     },
     {
+        "template_component_from_module_2_args",
+        World_template_component_from_module_2_args
+    },
+    {
         "entity_as_tag",
         World_entity_as_tag
     },
@@ -5021,6 +5251,13 @@ bake_test_case Doc_testcases[] = {
 
 static bake_test_suite suites[] = {
     {
+        "PrettyFunction",
+        NULL,
+        NULL,
+        2,
+        PrettyFunction_testcases
+    },
+    {
         "Entity",
         NULL,
         NULL,
@@ -5059,7 +5296,7 @@ static bake_test_suite suites[] = {
         "System",
         NULL,
         NULL,
-        59,
+        60,
         System_testcases
     },
     {
@@ -5094,14 +5331,14 @@ static bake_test_suite suites[] = {
         "FilterBuilder",
         NULL,
         NULL,
-        70,
+        106,
         FilterBuilder_testcases
     },
     {
         "RuleBuilder",
         NULL,
         NULL,
-        21,
+        23,
         RuleBuilder_testcases
     },
     {
@@ -5115,7 +5352,7 @@ static bake_test_suite suites[] = {
         "Observer",
         NULL,
         NULL,
-        21,
+        22,
         Observer_testcases
     },
     {
@@ -5143,7 +5380,7 @@ static bake_test_suite suites[] = {
         "Module",
         NULL,
         NULL,
-        9,
+        11,
         Module_testcases
     },
     {
@@ -5171,7 +5408,7 @@ static bake_test_suite suites[] = {
         "World",
         NULL,
         NULL,
-        91,
+        92,
         World_testcases
     },
     {
@@ -5212,5 +5449,5 @@ static bake_test_suite suites[] = {
 };
 
 int main(int argc, char *argv[]) {
-    return bake_test_run("cpp_api", argc, argv, suites, 27);
+    return bake_test_run("cpp_api", argc, argv, suites, 28);
 }

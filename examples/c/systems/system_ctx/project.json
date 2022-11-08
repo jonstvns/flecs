@@ -1,11 +1,15 @@
 {
-    "id": "ad_hoc_query",
+    "id": "system_ctx",
     "type": "application",
     "value": {
         "use": [
             "flecs"
         ],
-        "language": "c++",
         "public": false
+    },
+    "lang.c": {
+        "${os linux}": {
+            "lib": ["m"]
+        }
     }
 }

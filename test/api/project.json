@@ -141,10 +141,16 @@
                 "search_first_lvl_1",
                 "search_first_lvl_2",
                 "search_first_lvl_3",
+                "search_relation_wildcard",
                 "search_relation_at_offset",
+                "search_relation_inherit_from_parent",
                 "search_relation_dont_inherit",
                 "search_relation_dont_inherit_from_parent",
-                "search_relation_exclusive"
+                "search_relation_exclusive",
+                "search_relation_exclusive_from_parent",
+                "search_relation_union",
+                "search_relation_union_wildcard",
+                "search_relation_union_pair"
             ]
         }, {
             "id": "Event",
@@ -815,6 +821,7 @@
                 "ctor_on_move_pair",
                 "move_on_realloc",
                 "move_on_bulk_new",
+                "on_add_on_bulk_new",
                 "move_on_delete",
                 "move_dtor_on_delete",
                 "copy_on_override_pair",
@@ -1089,8 +1096,17 @@
                 "filter_iter_cascade_childof",
                 "filter_iter_superset_2_rel_instances",
                 "filter_iter_superset_2_rel_instances_match_2nd",
+                "filter_iter_superset_2_levels",
+                "filter_iter_superset_only_w_owned",
+                "filter_iter_superset_after_add",
+                "filter_iter_superset_after_remove",
+                "filter_iter_superset_after_clear",
+                "filter_iter_superset_after_delete",
                 "filter_iter_2_terms_superset_2_rel_instances",
                 "filter_iter_2_terms_superset_2_rel_instances_match_2nd",
+                "filter_iter_superset_parent_w_isa",
+                "filter_iter_superset_isa_after_remove_parent",
+                "filter_iter_superset_isa_create_table_after_iter",
                 "filter_w_10_terms",
                 "filter_w_10_terms_move",
                 "filter_w_10_terms_copy",
@@ -1169,6 +1185,8 @@
                 "set_this_to_superset_w_self_filter_no_match",
                 "set_this_to_isa_cascade",
                 "set_this_to_childof_cascade",
+                "set_this_w_wildcard_2_matches",
+                "set_this_to_entity_superset_self_has_component",
                 "oneof",
                 "oneof_expr",
                 "oneof_w_mismatching_obj",
@@ -1201,7 +1219,8 @@
                 "one_term_w_src_var",
                 "one_term_w_first_var",
                 "one_term_w_second_var",
-                "one_term_w_first_var_entity_src"
+                "one_term_w_first_var_entity_src",
+                "one_term_w_pair_w_0_entity"
             ]
         }, {
             "id": "Query",
@@ -1435,7 +1454,16 @@
                 "paged_iter_w_singleton_component_instanced",
                 "count",
                 "iter_restore_stack_iter",
-                "interleaved_iter"
+                "interleaved_iter",
+                "get_first",
+                "page_iter_w_only_tag",
+                "worker_iter_w_only_tag",
+                "page_iter_w_inout_none",
+                "worker_iter_w_inout_none",
+                "page_iter_w_ctx",
+                "page_iter_w_binding_ctx",
+                "worker_iter_w_ctx",
+                "worker_iter_w_binding_ctx"
             ]
         }, {
             "id": "Pairs",
@@ -1655,7 +1683,12 @@
                "on_set_superset_auto_override",
                "not_only",
                "not_only_w_base",
-               "not_only_w_base_no_match"
+               "not_only_w_base_no_match",
+               "on_set_superset_after_filter_observer",
+               "on_set_superset_after_filter_observer_w_on_add",
+               "on_set_superset_after_filter_observer_w_on_add_isa_after_set",
+               "on_set_superset_after_filter_observer_w_on_add_2",
+               "propagate_w_union_pair"
            ]
         }, {
             "id": "Observer",
@@ -1731,7 +1764,21 @@
                 "read_in_on_remove_after_add_other_w_not",
                 "observer_w_short_notation",
                 "observer_w_filter_term",
-                "multi_observer_w_ctx_free"
+                "multi_observer_w_ctx_free",
+                "propagate_after_on_delete_clear_action",
+                "on_add_after_batch_w_exclusive_adds",
+                "propagate_match_relationship_w_self_up",
+                "propagate_match_relationship_w_up",
+                "cache_test_1",
+                "cache_test_2",
+                "cache_test_3",
+                "cache_test_4",
+                "cache_test_5",
+                "cache_test_6",
+                "cache_test_7",
+                "cache_test_8",
+                "cache_test_9",
+                "cache_test_10"
             ]                
         }, {
             "id": "ObserverOnSet",
@@ -1969,7 +2016,10 @@
                 "slot_has_union",
                 "slot_override",
                 "base_slot_override",
-                "prefab_child_w_union"
+                "prefab_child_w_union",
+                "override_twice_w_add",
+                "override_twice_w_set",
+                "auto_override_copy_once"
             ]
         }, {
             "id": "World",
@@ -2164,7 +2214,13 @@
                 "add_2_in_observer_while_on_remove_for_delete_child",
                 "add_2_in_observer_while_on_remove_for_delete_recycled_id",
                 "add_2_in_observer_while_on_remove_for_deferred_delete_recycled_id",
-                "defer_add_after_clear"
+                "defer_add_after_clear",
+                "defer_cmd_after_modified",
+                "defer_remove_after_emplace_different_id",
+                "defer_remove_after_set_and_emplace_different_id",
+                "clear_after_add_to_nonempty",
+                "remove_after_add_to_nonempty",
+                "register_while_deferred_with_n_stages"
             ]
         }, {
             "id": "SingleThreadStaging",
